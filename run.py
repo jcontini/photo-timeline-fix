@@ -1,12 +1,13 @@
 import os, re, sqlite3, time, logging, datetime, piexif
+from sys import argv
 
-logging.basicConfig(filename="logfilename.log", level=logging.INFO)
+script, TOP_FOLDER = argv
+
+logging.basicConfig(filename="log.log", level=logging.INFO)
 log = logging.info
 
 con = sqlite3.connect('updates.db')
 cur = con.cursor()
-
-TOP_FOLDER = '/Users/Joe/Downloads/lisa/'
 
 def init_db():
     '''Init Database tables'''
@@ -57,7 +58,6 @@ def update_exif(file_path,exif_dict,new_exif_date):
     piexif.insert(piexif.dump(exif_dict), file_path)
     log(f"[{file_path}] Updated Exif: {new_exif_date}")
 
-
 def make_updates():
     '''Update files with new modified date & EXIF data'''
     folders = cur.execute("SELECT * FROM folders")
@@ -103,7 +103,10 @@ def make_updates():
                         update_mtime(file_path,new_ts)
 
                 except piexif._exceptions.InvalidImageDataError:
-                    log(f"[{file_path}] Unable to update Exif (not supported)")
+                    log(f"[{file_path}] Unable to update Exif (InvalidImageDataError)")
+                
+                except ValueError:
+                    log(f"[{file_path}] Unable to update Exif (ValueError)")
 
 init_db()
 index(TOP_FOLDER)

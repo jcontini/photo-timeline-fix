@@ -68,23 +68,24 @@ def make_updates():
 
             # Prep new dateime based on year
             new_year = int(folder[1])
-            naive_dt = datetime.datetime(new_year, 1, 1,12,11,11)
+            naive_dt = datetime.datetime(new_year, 1, 1,12,00,00)
             new_dt = naive_dt.replace(tzinfo=datetime.timezone.utc)
             new_ts = new_dt.timestamp()
 
             # Update modified date (for all files/media, inc videos)
             os.utime(file_path, (new_ts,)*2)
-            log(f"{file_path} Modified date: {new_ts}")
+            log(f"[{file_path}] Modified date: {new_ts}")
 
+            # Update Exif metadata (for supported images eg JPEG/WebP)
             try:
-                # Update Exif metadata (for supported images eg JPEG/WebP)
                 exif_dict = piexif.load(file_path)
-                exif_date = time.strftime("%Y:%m:%d %H:%M:%S", new_dt)
+                exif_date = time.strftime("%Y:%m:%d %H:%M:%S", new_dt.timetuple())
                 exif_dict['Exif'][piexif.ExifIFD.DateTimeOriginal] = exif_date
                 piexif.insert(piexif.dump(exif_dict), file_path)
+                log(f"[{file_path}] Updated Exif: {exif_date}")
+            except piexif._exceptions.InvalidImageDataError:
+                log(f"[{file_path}] Unable to update Exif (not supported)")
 
-            except TypeError: #update error type
-                log(f"[{file_path}] Couldn't update EXIF")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Photo year updater')

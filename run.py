@@ -67,7 +67,7 @@ def make_updates():
 
         # Prep new timestamp based on year
         new_year = int(folder[1])
-        naive_dt = datetime.datetime(new_year,6,1,12,00,00)
+        naive_dt = datetime.datetime(new_year,12,30,12,00,00)
         new_dt = naive_dt.replace(tzinfo=datetime.timezone.utc)
 
         new_ts = new_dt.timestamp()
